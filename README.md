@@ -34,6 +34,12 @@ $ npm install
 
 ## Running the app
 
+In order to up the app you should run first docker with the command:
+```
+docker compose up -d
+```
+After that copy ```.env.template``` and rename it to ```.env```
+
 ```bash
 # development
 $ npm run start

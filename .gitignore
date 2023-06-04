@@ -4,6 +4,7 @@
 
 # Data Base
 mongo/
+.env
 
 # Logs
 logs
