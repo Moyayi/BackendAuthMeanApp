@@ -7,6 +7,7 @@ import { UpdateUserDto } from './dto/update-auth.dto';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-user.dto';
 import { LoginDto } from './dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +22,11 @@ export class AuthController {
   @Post('/login')
   login( @Body() loginDto : LoginDto){
     return this.authService.login( loginDto )
+  }
+
+  @Post('/register')
+  register( @Body() registerDto : RegisterDto){
+    return this.authService.register( registerDto )
   }
 
   @Get()

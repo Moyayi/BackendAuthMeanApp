@@ -11,6 +11,9 @@ import { Model } from 'mongoose';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
 import { JwtPayload } from './interfaces/jwt-payload';
+import { LoginResponse } from './interfaces/login-response';
+import { RegisterDto } from './dto/register.dto';
+import { RegisterResponse } from './interfaces/register-response';
 
 @Injectable()
 export class AuthService {
@@ -22,6 +25,8 @@ export class AuthService {
     private jwtService : JwtService
   ){}
 
+
+  //Create User
   async create(createUserDto: CreateUserDto) : Promise<User> {
     try{
       const { password, ...userData } = createUserDto;
@@ -32,10 +37,6 @@ export class AuthService {
           ...userData
         }
         );
-
-      // Encriptar contraseña
-      // Guardar el usuario
-      // Generar el JWT
 
       await newUser.save();
       const { password:_, ...user} = newUser.toJSON();
@@ -50,13 +51,40 @@ export class AuthService {
     }
   }
 
+  async register( registerDto : RegisterDto) : Promise <RegisterResponse> { 
+    try{
+      const { password, ...userData } = registerDto;
+
+      const newUser = new this.userModel( 
+        {
+          password : bcryptjs.hashSync( password, 10),
+          ...userData
+        }
+        );
+
+      await newUser.save();
+      const { password:_, ...DataUser} = newUser.toJSON();
+
+      const user = await this.userModel.findOne( {email: DataUser.email} )
+
+      return { 
+        user : DataUser,
+        token : this.getJwtToken({id : user.id})
+      }
+
+    }catch( error ){
+      if(error.code === 11000){
+        throw new BadRequestException(`${ registerDto.email } ya existe el correo`)
+      }
+      throw new InternalServerErrorException('Error desconocido')
+    }
+
+  }
+  
   async login( loginDto : LoginDto ){
     const {email, password} = loginDto;
 
     const user = await this.userModel.findOne({ email })
-
-
-    console.log(user)
 
     if( !user ){
       throw new UnauthorizedException('Credenciales erroneas - email')
@@ -76,6 +104,11 @@ export class AuthService {
 
   }
 
+  getJwtToken ( payload : JwtPayload ){
+    const token = this.jwtService.sign(payload)
+    return token;
+  }
+
   findAll() {
     return `This action returns all auth`;
   }
@@ -92,9 +125,6 @@ export class AuthService {
     return `This action removes a #${id} auth`;
   }
 
-  getJwtToken ( payload : JwtPayload ){
-    const token = this.jwtService.sign(payload)
-    return token;
-  }
+
 
 }
